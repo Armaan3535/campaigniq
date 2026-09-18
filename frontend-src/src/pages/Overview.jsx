@@ -178,14 +178,14 @@ function SegmentMatrixChart({ raw }) {
             borderRadius: 3,
           },
           {
-            label: 'Response % (×10)',
-            data: segs.map(s => Math.round((s.avg_response ?? 0) * 1000)),
+            label: 'Response Rate %',
+            data: segs.map(s => Math.round((s.avg_response ?? 0) * 100)),
             backgroundColor: '#3BA878',
             borderRadius: 3,
           },
           {
-            label: 'Churn % (×10)',
-            data: segs.map(s => Math.round((s.avg_churn ?? 0) * 1000)),
+            label: 'Churn Rate %',
+            data: segs.map(s => Math.round((s.avg_churn ?? 0) * 100)),
             backgroundColor: '#E0963A',
             borderRadius: 3,
           },
@@ -224,15 +224,10 @@ function SegmentCard({ seg, idx }) {
   const churnRate = seg.avg_churn ?? 0
   const respRate  = seg.avg_response ?? 0
 
-  const churnTag = churnRate > 0.3
-    ? { cls: 'tag--red',   label: 'High churn' }
-    : churnRate > 0.15
-    ? { cls: 'tag--amber', label: 'Med churn' }
-    : { cls: 'tag--green', label: 'Low churn' }
-
-  const respTag = respRate > 0.2
-    ? { cls: 'tag--accent',  label: 'High response' }
-    : { cls: 'tag--neutral', label: 'Low response' }
+  const churnTagCls = churnRate > 0.3 ? 'tag--red' : churnRate > 0.15 ? 'tag--amber' : 'tag--green'
+  const churnLabel  = churnRate > 0.3 ? 'High churn' : churnRate > 0.15 ? 'Med churn' : 'Low churn'
+  const respTagCls  = respRate > 0.2  ? 'tag--accent' : 'tag--neutral'
+  const respLabel   = respRate > 0.2  ? 'High response' : 'Low response'
 
   return (
     <div className="chart-card" style={{ borderTop: `3px solid ${color}` }}>
@@ -248,15 +243,15 @@ function SegmentCard({ seg, idx }) {
         </div>
       </div>
       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-        <span className={`tag ${churnTag.cls}`}>{churnTag.label}</span>
-        <span className={`tag ${respTag.cls}`}>{respTag.label}</span>
+        <span className={`tag ${churnTagCls}`}>{churnLabel}</span>
+        <span className={`tag ${respTagCls}`}>{respLabel}</span>
         {seg.top_channel && <span className="tag tag--neutral">{seg.top_channel}</span>}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-        <StatBox label="Avg LTV"    value={money(seg.avg_ltv)} />
+        <StatBox label="Avg LTV"     value={money(seg.avg_ltv)} />
         <StatBox label="Top Product" value={seg.top_product ?? '—'} />
-        <StatBox label="Churn Rate" value={pct(churnRate * 100)} />
-        <StatBox label="Response"   value={pct(respRate  * 100)} />
+        <StatBox label="Churn Rate"  value={`${(churnRate * 100).toFixed(1)}%`} />
+        <StatBox label="Response"    value={`${(respRate  * 100).toFixed(1)}%`} />
       </div>
     </div>
   )
@@ -397,7 +392,7 @@ export default function Overview() {
               }}
             >
               {segData.value.map((seg, i) => (
-                <SegmentCard key={seg.id ?? i} seg={seg} idx={i} />
+                <SegmentCard key={seg.id !== undefined ? seg.id : i} seg={seg} idx={i} />
               ))}
             </div>
           </div>

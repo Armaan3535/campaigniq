@@ -29,7 +29,7 @@ function CustomerRow({ c, onClick }) {
       onClick={() => onClick(c)}
       style={{ cursor: 'pointer', borderBottom: '1px solid var(--border)' }}
     >
-      <td style={td}><strong style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}>#{c.id}</strong></td>
+      <td style={td}><strong style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}>#{c.ID}</strong></td>
       <td style={td}>{c.segment_name ?? '—'}</td>
       <td style={td}>{churnTag(c.churn_risk)}</td>
       <td style={td}>{respTag(c.response_tier)}</td>
@@ -39,12 +39,12 @@ function CustomerRow({ c, onClick }) {
             <div style={{ height: '100%', width: `${Math.round((c.response_prob ?? 0) * 100)}%`, background: 'var(--accent)', borderRadius: 2 }} />
           </div>
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-mid)', minWidth: 32 }}>
-            {pct((c.response_prob ?? 0) * 100)}
+            {((c.response_prob ?? 0) * 100).toFixed(1)}%
           </span>
         </div>
       </td>
-      <td style={td}>{money(c.predicted_ltv)}</td>
-      <td style={td}>{c.best_channel ?? '—'}</td>
+      <td style={td}>{c.predicted_ltv != null ? `$${Math.round(c.predicted_ltv).toLocaleString()}` : '—'}</td>
+      <td style={td}>{c.recommended_channel ?? '—'}</td>
     </tr>
   )
 }
@@ -77,7 +77,7 @@ function CustomerModal({ customer, onClose }) {
           <div>
             <div className="label" style={{ marginBottom: 6 }}>Customer Profile</div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--dark)' }}>
-              #{c.id}
+              #{c.ID}
             </h2>
           </div>
           <button
@@ -93,18 +93,18 @@ function CustomerModal({ customer, onClose }) {
           {c.segment_name && <Tag label={c.segment_name} type="neutral" />}
           {churnTag(c.churn_risk)}
           {respTag(c.response_tier)}
-          {c.best_channel && <Tag label={`Channel: ${c.best_channel}`} type="accent" />}
+          {c.recommended_channel && <Tag label={`Channel: ${c.recommended_channel}`} type="accent" />}
         </div>
 
         {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '2rem' }}>
           {[
-            ['Response Prob', pct((c.response_prob ?? 0) * 100)],
-            ['Predicted LTV', money(c.predicted_ltv)],
-            ['Income', money(c.Income)],
-            ['Total Spend', money(c.TotalSpend)],
-            ['Age', c.Age ?? '—'],
-            ['Recency', `${c.Recency ?? '—'} days`],
+            ['Response Prob', `${((c.response_prob ?? 0) * 100).toFixed(1)}%`],
+            ['Predicted LTV', c.predicted_ltv != null ? `$${Math.round(c.predicted_ltv).toLocaleString()}` : '—'],
+            ['Income',        c.income != null ? `$${Math.round(c.income).toLocaleString()}` : '—'],
+            ['Total Spend',   c.total_spend != null ? `$${Math.round(c.total_spend).toLocaleString()}` : '—'],
+            ['Age',           c.age ?? '—'],
+            ['Recency',       `${c.recency ?? '—'} days`],
           ].map(([label, value]) => (
             <div key={label} style={{ background: 'var(--bg-warm)', borderRadius: 'var(--radius-sm)', padding: '0.75rem 1rem' }}>
               <div style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{label}</div>
@@ -115,16 +115,16 @@ function CustomerModal({ customer, onClose }) {
 
         {/* Spend Breakdown */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-          <div className="label" style={{ marginBottom: '1rem' }}>Spending by Category (Last 2 Years)</div>
+          <div className="label" style={{ marginBottom: '1rem' }}>Spending by Category (Predicted)</div>
           {[
-            ['Wines',   c.MntWines],
-            ['Meat',    c.MntMeatProducts],
-            ['Fish',    c.MntFishProducts],
-            ['Fruits',  c.MntFruits],
-            ['Sweets',  c.MntSweetProducts],
-            ['Gold',    c.MntGoldProds],
+            ['Wines',   c.pred_wines],
+            ['Meat',    c.pred_meat],
+            ['Fish',    c.pred_fish],
+            ['Fruits',  c.pred_fruits],
+            ['Sweets',  c.pred_sweets],
+            ['Gold',    c.pred_gold],
           ].filter(([, v]) => v != null).map(([cat, val]) => {
-            const maxSpend = 1000
+            const maxSpend = Math.max(c.pred_wines??0, c.pred_meat??0, c.pred_fish??0, c.pred_fruits??0, c.pred_sweets??0, c.pred_gold??0, 1)
             const w = Math.min(100, Math.round((val / maxSpend) * 100))
             return (
               <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.6rem' }}>
