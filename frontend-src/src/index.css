@@ -494,6 +494,12 @@ h1, h2, h3, h4 {
   .container { padding: 0 1.25rem; }
   .hero { padding: 4rem 0 3rem; }
   .section { padding: 3.5rem 0; }
+  /* Predict page two-col → one col on mobile */
+  .predict-grid { grid-template-columns: 1fr !important; }
+  /* Model insights two-col → one col on mobile */
+  .insights-grid { grid-template-columns: 1fr !important; }
+  /* Navbar nav links hidden on very small screens */
+  .navbar-links { display: none; }
 }
 
 @media (max-width: 560px) {
